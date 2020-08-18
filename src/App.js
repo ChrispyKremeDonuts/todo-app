@@ -1,87 +1,69 @@
-import React from 'react';
-import './App.css';
-import ListItems from './ListItems'
+import Typography from "@material-ui/core/Typography";
+import React, { useEffect, useState } from "react";
+import "./App.css";
+import TodoForm from "./TodoForm";
+import TodoList from "./TodoList";
 
-class App extends React.Component{
-  constructor(props){
-    super(props);
-    this.state = {
-      items:[],
-      currentItem:{
-        text:'',
-        key:''
-      }
+
+const LOCAL_STORAGE_KEY = "react-todo-list-todos";
+
+function App() {
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    // fires when app component mounts to the DOM
+    const storageTodos = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (storageTodos) {
+      setTodos(storageTodos);
     }
-    this.addItem = this.addItem.bind(this);
-    this.handleInput = this.handleInput.bind(this);
-    this.deleteItem = this.deleteItem.bind(this);
-    this.setUpdate = this.setUpdate.bind(this);
+  }, []);
+
+  useEffect(() => {
+    // fires when todos array gets updated
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
+
+  function addTodo(todo) {
+    // adds new todo to beginning of todos array
+    setTodos([todo, ...todos]);
   }
 
-  addItem(e){
-    e.preventDefault();
-    const newItem = this.state.currentItem;
-
-    if(newItem.text !==""){
-      const items = [...this.state.items, newItem];
-
-      this.setState({
-        items: items,
-        currentItem:{
-          text:'',
-          key:''
+  function toggleComplete(id) {
+    setTodos(
+      todos.map(todo => {
+        if (todo.id === id) {
+          return {
+            ...todo,
+            completed: !todo.completed
+          };
         }
+        return todo;
       })
-    }
-  }
-
-  handleInput(e){
-    this.setState({
-      currentItem:{
-        text: e.target.value,
-        key: Date.now()
-      }
-    })
-  }
-
-    deleteItem(key){
-    const filteredItems= this.state.items.filter(item =>
-      item.key!==key);
-    this.setState({
-      items: filteredItems
-    })
-  }
-
-  setUpdate(text,key){
-    console.log("items:"+this.state.items);
-    const items = this.state.items;
-    items.map(item=>{      
-      if(item.key===key){
-        item.text= text;
-      }
-    })
-    this.setState({
-      items: items
-    })}
-
-  render(){
-    return (
-      <div className="App">
-        <header>
-          <form id="to-do-form" onSubmit={this.addItem}>
-            <input type="text" placeholder="Enter task" value= {this.state.currentItem.text} onChange={this.handleInput}></input>
-            <button type="submit">Add</button>
-          </form>
-        </header>
-        <ListItems 
-          items = {this.state.items}
-          deleteItem = {this.deleteItem}
-          setUpdate = {this.setUpdate} 
-        />
-      </div>
     );
   }
-}
 
+  function removeTodo(id) {
+    setTodos(todos.filter(todo => todo.id !== id));
+  }
+
+  function handleSave(todo){
+    // Call Apollo with todo Id and new values
+  }
+
+  return (
+    <div className="App">
+      <Typography style={{ padding: 16 }} variant="h1">
+        Todo
+      </Typography>
+      <TodoForm addTodo={addTodo} />
+      <TodoList
+        todos={todos}
+        removeTodo={removeTodo}
+        toggleComplete={toggleComplete}
+        handleSave={handleSave}
+      />
+    </div>
+  );
+}
 
 export default App;

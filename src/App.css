@@ -1,37 +1,26 @@
-body {
-	background-color: #f47d2a;
-}
-
 .App {
 	text-align: center;
-	min-height: 600px;
-	width: 500px;
-	margin: 50px auto;
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
-#to-do-form input {
-	border: 0;
-	width: 200px;
-	height: 50px;
-	padding: 0 20px;
-	margin: 20px;
-	font-size: 18px;
-	border-radius: 10px;
+body,
+html,
+#root {
+	height: 100%;
 }
 
-#to-do-form input:focus {
-	outline: none;
+.todo-form {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
 }
 
-#to-do-form button {
-	height: 50px;
-	width: 80px;
-	border-radius: 50px;
-	cursor: pointer;
-}
-
-#to-do-form button:focus {
-	outline: none;
+li {
+	text-align: initial;
 }
 
 .App-logo {
