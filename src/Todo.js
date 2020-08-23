@@ -17,7 +17,13 @@ function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
 
   function handleSaveClick(){
     let newTodo = {...todo};
-    newTodo.task = taskValue;
+    if (newTodo.task.trim()){
+      newTodo.task = taskValue;
+    }
+    else {
+      newTodo.task = todo.task
+
+    }
 
     handleSave(newTodo)
     setIsEditable(false)

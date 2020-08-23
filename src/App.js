@@ -1,11 +1,11 @@
 import Typography from "@material-ui/core/Typography";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, setState } from "react";
 import "./App.css";
 import TodoForm from "./TodoForm";
 import TodoList from "./TodoList";
 
 
-const LOCAL_STORAGE_KEY = "react-todo-list-todos";
+const LOCAL_STORAGE_KEY = "todo-list-todos";
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -46,8 +46,19 @@ function App() {
     setTodos(todos.filter(todo => todo.id !== id));
   }
 
-  function handleSave(todo){
+  function handleSave(newTodo){
     // Call Apollo with todo Id and new values
+      setTodos(
+        todos.map(todo => {
+          if (todo.id === newTodo.id) {
+            return {
+              ...newTodo,
+              task: newTodo.task
+            };
+          }
+          return todo;
+        })
+      );
   }
 
   return (
