@@ -1,3 +1,4 @@
+import { gql, useQuery, Mutation, ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import Typography from "@material-ui/core/Typography";
 import React, { useEffect, useState, setState } from "react";
 import "./App.css";
@@ -7,8 +8,19 @@ import TodoList from "./TodoList";
 
 const LOCAL_STORAGE_KEY = "todo-list-todos";
 
+
+
+
 function App() {
+
+  const client = new ApolloClient({
+    uri: "http://127.0.0.1:5000/graphql",
+    cache: new InMemoryCache(),
+  });
+  
+  
   const [todos, setTodos] = useState([]);
+
 
   useEffect(() => {
     // fires when app component mounts to the DOM
@@ -27,6 +39,7 @@ function App() {
     // adds new todo to beginning of todos array
     setTodos([todo, ...todos]);
   }
+
 
   function toggleComplete(id) {
     setTodos(
@@ -62,18 +75,20 @@ function App() {
   }
 
   return (
-    <div className="App">
-      <Typography style={{ padding: 16 }} variant="h1">
-        Todo
-      </Typography>
-      <TodoForm addTodo={addTodo} />
-      <TodoList
-        todos={todos}
-        removeTodo={removeTodo}
-        toggleComplete={toggleComplete}
-        handleSave={handleSave}
-      />
-    </div>
+    <ApolloProvider client = {client}>
+      <div className="App">
+        <Typography style={{ padding: 16 }} variant="h1">
+          Todo
+        </Typography>
+        <TodoForm addTodo={addTodo} />
+        <TodoList
+          todos={todos}
+          removeTodo={removeTodo}
+          toggleComplete={toggleComplete}
+          handleSave={handleSave}
+          />
+      </div>
+    </ApolloProvider>
   );
 }
 

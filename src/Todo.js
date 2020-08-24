@@ -2,13 +2,28 @@ import { Checkbox, IconButton, ListItem, Typography } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
 import SaveIcon from '@material-ui/icons/Save';
 import React, { useState, setState }  from "react";
+import { gql, useQuery } from '@apollo/client';
+
+const GET_TASKS = gql`
+query {
+  allTasks {
+    edges {
+      node {
+        id
+      }
+    }
+  }
+}
+`;
 
 function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
   const [taskValue, setTaskValue] = useState(todo.task);
   const [isEditable, setIsEditable] = useState(false);
+  const { loading, error, data } = useQuery(GET_TASKS);
 
   function handleCheckboxClick() {
     toggleComplete(todo.id);
+    console.log(data, loading, error);
   }
 
   function handleRemoveClick() {
