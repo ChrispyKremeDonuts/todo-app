@@ -14,14 +14,10 @@ class Task(SQLAlchemyObjectType):
         interfaces = (relay.Node, )
 
     
-    # item = graphene.String()
-    # task_id = graphene.Int()
-
 class CreateTask(graphene.Mutation):
     class Arguments:
         item = graphene.String()
     
-##    list_id=graphene.Int()
     completed = graphene.Boolean()
     task = graphene.Field(lambda: Task)
 
@@ -45,16 +41,30 @@ class UpdateTask(graphene.Mutation):
     task = graphene.Field(lambda: Task)
 
     def mutate(root, info, item, task_id):
-        list_id=1
         completed = False
         task = Task(task_id=task_id, item=item, completed=completed)
-        data = [
-            TaskModel(task_id=task_id, list_id =list_id, item=item, completed=False)
-        ]
+
         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
         row.item=item
         session.commit()
         return UpdateTask(task=task)
+
+class UpdateCompleted(graphene.Mutation):
+    class Arguments:
+        task_id = graphene.Int()
+        completed = graphene.Boolean()
+
+    item = graphene.String()
+    task = graphene.Field(lambda: Task)
+
+    def mutate(root, info, completed, task_id):
+
+        row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
+        item = row.item
+        row.completed=completed
+        session.commit()
+        task = Task(task_id=task_id,item=item, completed=completed)
+        return UpdateCompleted(task=task)
 
 class DeleteTask(graphene.Mutation):
     class Arguments:
@@ -76,6 +86,7 @@ class MyMutations(graphene.ObjectType):
     create_task = CreateTask.Field()
     delete_task = DeleteTask.Field()
     update_task = UpdateTask.Field()
+    update_completed = UpdateCompleted.Field()
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()

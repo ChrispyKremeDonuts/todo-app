@@ -1,4 +1,4 @@
-import { gql, useQuery, useMutation, ApolloProvider, ApolloClient } from '@apollo/client';
+import { gql, useQuery,useLazyQuery, useMutation, NetworkStatus } from '@apollo/client';
 // import { createPersistedQueryLink } from "apollo-link-persisted-queries";
 // import { createHttpLink } from "apollo-link-http";
 import { InMemoryCache } from "apollo-cache-inmemory";
@@ -38,54 +38,28 @@ mutation DeleteTodo($taskId: Int!) {
 
 function App() {
 
-  const client = new ApolloClient({
-    uri: "http://127.0.0.1:5000/graphql",
-    cache: new InMemoryCache(),
-  });
-
-  // const link = onError(({ graphQLErrors, networkError }) => {
-  //   if (graphQLErrors)
-  //     graphQLErrors.forEach(({ message, locations, path }) =>
-  //       console.log(
-  //         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-  //       )
-  //     );
-  //   if (networkError) console.log(`[Network error]: ${networkError}`);
-  // });
-
-  //const link = createPersistedQueryLink().concat(createHttpLink({ uri: "http://localhost:5000/graphql?query=%7BallTasks%20%7B%0A%20%20edges%20%7B%0A%20%20%20%20node%20%7B%0A%20%20%20%20%20%20taskId%2C%20item%2C%20completed%0A%20%20%20%20%7D%0A%20%20%7D%0A%20%20__typename%0A%7D%7D" }))
-  
-  // const link = ApolloLink.from([
-  //   createPersistedQueryLink({ useGETForHashedQueries: true }),
-  //   createHttpLink({ uri: "http://localhost:5000/graphql?query=%7BallTasks%20%7B%0A%20%20edges%20%7B%0A%20%20%20%20node%20%7B%0A%20%20%20%20%20%20taskId%2C%20item%2C%20completed%0A%20%20%20%20%7D%0A%20%20%7D%0A%20%20__typename%0A%7D%7D" })
-  // ]);
-
-  // const client = new ApolloClient({
-  //   uri: "http://127.0.0.1:5000/graphql",
-  //   cache: new InMemoryCache(),
-  //   link: link,
-  // });
-
-
   const [todos, setTodos] = useState([]);
-  const { loading, error, data, refetch } = useQuery(GET_TODOS);
-  const [deleteFromDB, {dataDelete}] = useMutation(DELETE_TODOS);
-  
-  // function fetchTodos(){{
-  //   setTodos(
-  //     data.allTasks.edges.map(edge => {
-  //       return {
-  //         ...todos,
-  //         id: edge.node.taskId,
-  //         task: edge.node.item,
-  //         completed: edge.node.completed
-  //       }
-  //     }),
-  //     );
-  //   }
-  // }
-  
 
+  const { loading, error, data, updateQuery } = useQuery(GET_TODOS);
+
+  const [deleteFromDB] = useMutation(DELETE_TODOS);
+
+  function fetchTodos(data){{
+    updateQuery()
+    setTodos(
+      data.allTasks.edges.map(edge => {
+        return {
+          ...todos,
+          id: edge.node.taskId,
+          task: edge.node.item,
+          completed: edge.node.completed
+        }
+      }),
+      );
+    }
+  }
+
+console.log(data)
 
 
   // useEffect(() => {
@@ -107,16 +81,8 @@ function App() {
 
   function addTodo(todo) {
     // adds new todo to beginning of todos array
-   fetchTodos()
    setTodos([todo, ...todos]);
-  //  setTodos([todo,  data.allTasks.edges.map(edge => {
-  //   return {
-  //     ...todo,
-  //     id: edge.node.taskId,
-  //     task: edge.node.item,
-  //     completed: edge.node.completed
-  //   }
-  // })]);
+  // console.log(data)
    //console.log(data.allTasks.edges.map(edge => edge.node.item ));
     setTodos(
     data.allTasks.edges.map(edge => {
@@ -128,7 +94,7 @@ function App() {
       }
     }),
     );
-    // setTodos([todo, ...todos]);
+
   }
 
 
@@ -166,23 +132,22 @@ function App() {
       );
   }
 
-function fetchTodos(todos){
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error :(</p>;
- setTodos(
-    data.allTasks.edges.map(edge => {
-      return {
-        ...todos,
-        id: edge.node.taskId,
-        task: edge.node.item,
-        completed: edge.node.completed
-      }
-    }),
-    );
-  }
+// function fetchTodos(todos){
+//   if (loading) return <p>Loading...</p>;
+//   if (error) return <p>Error :(</p>;
+//  setTodos(
+//     data.allTasks.edges.map(edge => {
+//       return {
+//         ...todos,
+//         id: edge.node.taskId,
+//         task: edge.node.item,
+//         completed: edge.node.completed
+//       }
+//     }),
+//     );
+//   }
 
   return (
-    <ApolloProvider client = {client}>
       <div className="App">
         <Typography style={{ padding: 16 }} variant="h1">
           Todo
@@ -195,7 +160,6 @@ function fetchTodos(todos){
           handleSave={handleSave}
           />
       </div>
-    </ApolloProvider>
     
   );
 }

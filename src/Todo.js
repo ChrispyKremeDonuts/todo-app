@@ -12,19 +12,30 @@ mutation UpdateTodo($taskId: Int! $task: String!) {
     }
   }
 }
-
 `;
 
-
+const UPDATE_COMPLETED = gql `
+mutation Updatecompleted($taskId: Int! $completed: Boolean!) {
+  updateCompleted(taskId: $taskId, completed: $completed){
+    task {
+      taskId, item, completed
+    }
+  }
+}
+`;
 
 function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
   const [taskValue, setTaskValue] = useState(todo.task);
   const [isEditable, setIsEditable] = useState(false);
-  const [EditTodoDb, data] = useMutation(UPDATE_TODOS);
+  const [EditTodoDb] = useMutation(UPDATE_TODOS);
+  const [EditCompleteDb] = useMutation(UPDATE_COMPLETED);
   
 
   function handleCheckboxClick() {
+    console.log(todo.completed)
     toggleComplete(todo.id);
+    console.log(todo.completed)
+    EditCompleteDb({variables: { taskId: todo.id, completed: !todo.completed } });
   }
 
   function handleRemoveClick() {
