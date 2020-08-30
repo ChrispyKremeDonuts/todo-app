@@ -1,29 +1,30 @@
-import { Checkbox, IconButton, ListItem, Typography } from "@material-ui/core";
+import { Checkbox, IconButton, ListItem } from "@material-ui/core";
 import CloseIcon from "@material-ui/icons/Close";
 import SaveIcon from '@material-ui/icons/Save';
-import React, { useState, setState }  from "react";
-import { gql, useQuery } from '@apollo/client';
+import React, { useState }  from "react";
+import { gql, useMutation } from '@apollo/client';
 
-const GET_TASKS = gql`
-query {
-  allTasks {
-    edges {
-      node {
-        id
-      }
+const UPDATE_TODOS = gql`
+mutation UpdateTodo($taskId: Int! $task: String!) {
+  updateTask(taskId: $taskId, item: $task){
+    task {
+      taskId, item, completed
     }
   }
 }
+
 `;
+
+
 
 function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
   const [taskValue, setTaskValue] = useState(todo.task);
   const [isEditable, setIsEditable] = useState(false);
-  const { loading, error, data } = useQuery(GET_TASKS);
+  const [EditTodoDb, data] = useMutation(UPDATE_TODOS);
+  
 
   function handleCheckboxClick() {
     toggleComplete(todo.id);
-    console.log(data, loading, error);
   }
 
   function handleRemoveClick() {
@@ -32,13 +33,8 @@ function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
 
   function handleSaveClick(){
     let newTodo = {...todo};
-    if (newTodo.task.trim()){
-      newTodo.task = taskValue;
-    }
-    else {
-      newTodo.task = todo.task
-
-    }
+    newTodo.task = taskValue;
+    EditTodoDb({variables: { taskId: todo.id, task: newTodo.task } });
 
     handleSave(newTodo)
     setIsEditable(false)
