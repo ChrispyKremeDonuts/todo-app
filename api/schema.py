@@ -12,10 +12,70 @@ class Task(SQLAlchemyObjectType):
     class Meta:
         model = TaskModel
         interfaces = (relay.Node, )
+
     
     # item = graphene.String()
     # task_id = graphene.Int()
+
+class CreateTask(graphene.Mutation):
+    class Arguments:
+        item = graphene.String()
     
+##    list_id=graphene.Int()
+    completed = graphene.Boolean()
+    task = graphene.Field(lambda: Task)
+
+    def mutate(root, info, item):
+        list_id=1
+        completed = False
+        task = Task(item=item, completed=completed)
+        data = [
+            TaskModel( list_id =list_id, item=item, completed=False)
+        ]
+        session.bulk_save_objects(data)
+        session.commit()
+        return CreateTask(task=task)
+
+class UpdateTask(graphene.Mutation):
+    class Arguments:
+        item = graphene.String()
+        task_id = graphene.Int()
+    
+    completed = graphene.Boolean()
+    task = graphene.Field(lambda: Task)
+
+    def mutate(root, info, item, task_id):
+        list_id=1
+        completed = False
+        task = Task(task_id=task_id, item=item, completed=completed)
+        data = [
+            TaskModel(task_id=task_id, list_id =list_id, item=item, completed=False)
+        ]
+        row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
+        row.item=item
+        session.commit()
+        return UpdateTask(task=task)
+
+class DeleteTask(graphene.Mutation):
+    class Arguments:
+        task_id = graphene.Int()
+    
+    task_id = graphene.Int()
+    task = graphene.Field(lambda: Task)
+
+    def mutate(root, info, task_id):
+        task = Task(task_id=task_id)
+        row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
+        session.delete(row)
+        session.commit()
+        return DeleteTask(task=task)
+
+
+
+class MyMutations(graphene.ObjectType):
+    create_task = CreateTask.Field()
+    delete_task = DeleteTask.Field()
+    update_task = UpdateTask.Field()
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
@@ -24,19 +84,9 @@ class Query(graphene.ObjectType):
     all_tasks= SQLAlchemyConnectionField(Task)
     task = graphene.Field(Task)
 
-    def resolve_task(self, info, title):
-        return session.query(Task).all()
+    # def resolve_all_tasks(self, info):
+    #     return session.query(Task).all()
 
-# class Query(ObjectType):
-#     # this defines a Field `hello` in our Schema with a single Argument `name`
-#     hello = String(name=String(default_value="stranger"))
-#     goodbye = String()
-#     # our Resolver method takes the GraphQL context (root, info) as well as
-#     # Argument (name) for the Field and returns data for the query Response
-#     def resolve_hello(root, info, name):
-#         return f'Hello {name}!'
-#     def resolve_goodbye(root, info):
-#         return 'See ya!'
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=Query, mutation=MyMutations)
 
