@@ -2,33 +2,34 @@ import graphene
 from graphene import relay, Field, String, ObjectType
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from models import session, List as ListModel, Task as TaskModel
+from sqlalchemy.sql.functions import coalesce
 
 class List(SQLAlchemyObjectType):
     class Meta:
         model = ListModel
-        interfaces = (relay.Node, )
 
 class Task(SQLAlchemyObjectType):
     class Meta:
         model = TaskModel
-        interfaces = (relay.Node, )
 
     
 class CreateTask(graphene.Mutation):
     class Arguments:
         item = graphene.String()
         task_id = graphene.String()
+        index = graphene.Int()
 
     completed = graphene.Boolean()
-    task = graphene.Field(lambda: Task)
+    task = graphene.Field(Task)
     task_id = graphene.String()
+    index = graphene.Int()
 
-    def mutate(root, info, item, task_id):
+    def mutate(root, info, item, task_id, index):
         list_id=1
         completed = False
-        task = Task(task_id=task_id,item=item, completed=completed)
+        task = Task(task_id=task_id,item=item, completed=completed, index = index)
         data = [
-            TaskModel( task_id=task_id, list_id =list_id, item=item, completed=False)
+            TaskModel( task_id=task_id, list_id =list_id, item=item, completed=False, index = index)
         ]
         session.bulk_save_objects(data)
         session.commit()
@@ -73,7 +74,7 @@ class DeleteTask(graphene.Mutation):
         task_id = graphene.String()
     
     task_id = graphene.String()
-    task = graphene.Field(lambda: Task)
+    task = graphene.Field(Task)
 
     def mutate(root, info, task_id):
         task = Task(task_id=task_id)
@@ -91,14 +92,16 @@ class MyMutations(graphene.ObjectType):
     update_completed = UpdateCompleted.Field()
 
 class Query(graphene.ObjectType):
-    node = relay.Node.Field()
-    # Allows sorting over multiple columns, by default over the primary key
-    all_lists = SQLAlchemyConnectionField(List.connection)
-    all_tasks= SQLAlchemyConnectionField(Task)
-    task = graphene.Field(Task)
+    # all_lists = SQLAlchemyConnectionField(List.connection)
+    # all_tasks= SQLAlchemyConnectionField(Task)
+    tasks = graphene.List(Task)
+    task_max_index = graphene.List(Task)
+    def resolve_tasks(self, args):
+        return session.query(TaskModel).all()
 
-    # def resolve_all_tasks(self, info):
-    #     return session.query(Task).all()
+    def resolve_task_max_index(self, args):
+      # task_max_index = session.execute("select coalesce(max(index),0) from tasks") 
+        return session.query(TaskModel).order_by(TaskModel.index.desc()).limit(1)
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)

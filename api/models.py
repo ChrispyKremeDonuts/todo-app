@@ -27,5 +27,6 @@ class Task(base):
     task_id = Column(String, primary_key=True)
     item = Column(String)
     completed = Column(Boolean)
+    index = Column(Integer)
     list_id = Column(Integer, ForeignKey('lists.list_id'))
     lists = relationship("List", back_populates="tasks")
