@@ -1,40 +1,73 @@
 import { Button } from "@material-ui/core";
 import React, { useState } from "react";
 import uuid from "uuid";
-import { gql, useMutation } from '@apollo/client';
+import { gql, useMutation, useQuery, useLazyQuery } from '@apollo/client';
+// import { useQuery } from "react-apollo";
 
 const ADD_TODOS = gql`
-mutation AddTodo($taskId: String! $task: String!) {
-  createTask(taskId: $taskId item: $task){
+mutation AddTodo($taskId: String! $task: String! $index: Int!) {
+  createTask(taskId: $taskId item: $task, index: $index){
     task {
-      item completed taskId
+      item completed taskId, index
     }
   }
 }
 `;
 
+const GET_MAX_INDEX = gql`
+query maxIndex{taskMaxIndex {
+  item
+  completed
+  index
+  listId
+	}
+}
+`;
+
+
 function TodoForm({ addTodo }) {
   const [todo, setTodo] = useState({
     id: "",
     task: "",
-    completed: false
+    completed: false,
+    index: ""
   });
   const [addTodoToDB] = useMutation(ADD_TODOS);
+
+  const [maxIndex, setMaxIndex] = useState(0);
+
+  const [fetchMaxIndex, {data}] = useLazyQuery(GET_MAX_INDEX, { onCompleted: () => {
+    let newMax = 0;
+    data.taskMaxIndex.forEach(row => {
+      if(row.index){
+        newMax = row.index + 100
+      }
+    })
+    setMaxIndex(
+      newMax
+      )
+    }})
+  
 
   function handleTaskInputChange(e) {
     //sending reqest  to   server  on  every keystroke. Look for user to press enter
       setTodo({ ...todo, task: e.target.value });
+      fetchMaxIndex()
   }
 
+
   function handleSubmit(e) {
-    e.preventDefault(); // prevents browser refresh
+    e.preventDefault(); 
+
     let temp_id = uuid.v4()
-    // trim() gets rid of string whitespace
+
+   setMaxIndex(maxIndex + 100)
     if (todo.task.trim()) {
-      addTodo({ ...todo, id: temp_id });
-      addTodoToDB({variables: { taskId: temp_id, task: todo.task } });
+      addTodo({ ...todo, id: temp_id, index: maxIndex });
+      addTodoToDB({variables: { taskId: temp_id, task: todo.task, index: maxIndex } });
       setTodo({ ...todo, task: "" });
     }
+
   }
 
 

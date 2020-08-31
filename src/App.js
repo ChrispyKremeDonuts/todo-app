@@ -6,18 +6,23 @@ import TodoForm from "./TodoForm";
 import TodoList from "./TodoList";
 
 
-const LOCAL_STORAGE_KEY = "todo-list-todos";
-
+// const GET_TODOS = gql`
+// query {
+//   allTasks {
+//   		edges {
+//     		node {
+//       		taskId, item, completed
+//     			}
+//  				}
+// 			}
+// 		}
+// `;
 const GET_TODOS = gql`
-query {
-  allTasks {
-  		edges {
-    		node {
-      		taskId, item, completed
-    			}
- 				}
-			}
-		}
+query Tasks{
+  tasks {
+    taskId, item, completed, index
+  }
+}
 `;
 
 const DELETE_TODOS = gql`
@@ -39,12 +44,12 @@ function App() {
 
   const [fetchTodos, {data}] = useLazyQuery(GET_TODOS, { onCompleted: () =>     
     setTodos(
-    data.allTasks.edges.map(edge => {
+    data.tasks.map(row => {
       return {
         ...todos,
-        id: edge.node.taskId,
-        task: edge.node.item,
-        completed: edge.node.completed
+        id: row.taskId,
+        task: row.item,
+        completed: row.completed
       }
     }),
     ),
@@ -58,8 +63,7 @@ function App() {
 
 
   function addTodo(todo) {
-   setTodos([todo, ...todos]);
-   console.log(todos)
+   setTodos([...todos, todo]);
   }
 
 
@@ -95,6 +99,8 @@ function App() {
         })
       );
   }
+
+  // function handleOrder(id)
 
 
   return (
