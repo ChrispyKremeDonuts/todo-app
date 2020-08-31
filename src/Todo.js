@@ -5,7 +5,7 @@ import React, { useState }  from "react";
 import { gql, useMutation } from '@apollo/client';
 
 const UPDATE_TODOS = gql`
-mutation UpdateTodo($taskId: Int! $task: String!) {
+mutation UpdateTodo($taskId: String! $task: String!) {
   updateTask(taskId: $taskId, item: $task){
     task {
       taskId, item, completed
@@ -15,7 +15,7 @@ mutation UpdateTodo($taskId: Int! $task: String!) {
 `;
 
 const UPDATE_COMPLETED = gql `
-mutation Updatecompleted($taskId: Int! $completed: Boolean!) {
+mutation Updatecompleted($taskId: String! $completed: Boolean!) {
   updateCompleted(taskId: $taskId, completed: $completed){
     task {
       taskId, item, completed
@@ -24,17 +24,17 @@ mutation Updatecompleted($taskId: Int! $completed: Boolean!) {
 }
 `;
 
+
+
 function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
   const [taskValue, setTaskValue] = useState(todo.task);
   const [isEditable, setIsEditable] = useState(false);
   const [EditTodoDb] = useMutation(UPDATE_TODOS);
   const [EditCompleteDb] = useMutation(UPDATE_COMPLETED);
-  
+
 
   function handleCheckboxClick() {
-    console.log(todo.completed)
     toggleComplete(todo.id);
-    console.log(todo.completed)
     EditCompleteDb({variables: { taskId: todo.id, completed: !todo.completed } });
   }
 
@@ -46,7 +46,6 @@ function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
     let newTodo = {...todo};
     newTodo.task = taskValue;
     EditTodoDb({variables: { taskId: todo.id, task: newTodo.task } });
-
     handleSave(newTodo)
     setIsEditable(false)
 }

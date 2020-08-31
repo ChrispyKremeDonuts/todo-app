@@ -17,16 +17,18 @@ class Task(SQLAlchemyObjectType):
 class CreateTask(graphene.Mutation):
     class Arguments:
         item = graphene.String()
-    
+        task_id = graphene.String()
+
     completed = graphene.Boolean()
     task = graphene.Field(lambda: Task)
+    task_id = graphene.String()
 
-    def mutate(root, info, item):
+    def mutate(root, info, item, task_id):
         list_id=1
         completed = False
-        task = Task(item=item, completed=completed)
+        task = Task(task_id=task_id,item=item, completed=completed)
         data = [
-            TaskModel( list_id =list_id, item=item, completed=False)
+            TaskModel( task_id=task_id, list_id =list_id, item=item, completed=False)
         ]
         session.bulk_save_objects(data)
         session.commit()
@@ -35,7 +37,7 @@ class CreateTask(graphene.Mutation):
 class UpdateTask(graphene.Mutation):
     class Arguments:
         item = graphene.String()
-        task_id = graphene.Int()
+        task_id = graphene.String()
     
     completed = graphene.Boolean()
     task = graphene.Field(lambda: Task)
@@ -51,7 +53,7 @@ class UpdateTask(graphene.Mutation):
 
 class UpdateCompleted(graphene.Mutation):
     class Arguments:
-        task_id = graphene.Int()
+        task_id = graphene.String()
         completed = graphene.Boolean()
 
     item = graphene.String()
@@ -68,9 +70,9 @@ class UpdateCompleted(graphene.Mutation):
 
 class DeleteTask(graphene.Mutation):
     class Arguments:
-        task_id = graphene.Int()
+        task_id = graphene.String()
     
-    task_id = graphene.Int()
+    task_id = graphene.String()
     task = graphene.Field(lambda: Task)
 
     def mutate(root, info, task_id):

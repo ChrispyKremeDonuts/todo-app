@@ -24,7 +24,7 @@ class List(base):
 class Task(base):  
     __tablename__ = 'tasks'
 
-    task_id = Column(Integer, primary_key=True)
+    task_id = Column(String, primary_key=True)
     item = Column(String)
     completed = Column(Boolean)
     list_id = Column(Integer, ForeignKey('lists.list_id'))
