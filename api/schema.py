@@ -4,15 +4,17 @@ from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from models import session, List as ListModel, Task as TaskModel
 from sqlalchemy.sql.functions import coalesce
 
+
 class List(SQLAlchemyObjectType):
     class Meta:
         model = ListModel
+
 
 class Task(SQLAlchemyObjectType):
     class Meta:
         model = TaskModel
 
-    
+
 class CreateTask(graphene.Mutation):
     class Arguments:
         item = graphene.String()
@@ -25,32 +27,22 @@ class CreateTask(graphene.Mutation):
     index = graphene.Int()
 
     def mutate(root, info, item, task_id, index):
-        list_id=1
+        list_id = 1
         completed = False
-        task = Task(task_id=task_id,item=item, completed=completed, index = index)
+        task = Task(task_id=task_id, item=item, completed=completed, index=index)
         data = [
-            TaskModel( task_id=task_id, list_id =list_id, item=item, completed=False, index = index)
+            TaskModel(
+                task_id=task_id,
+                list_id=list_id,
+                item=item,
+                completed=False,
+                index=index,
+            )
         ]
         session.bulk_save_objects(data)
         session.commit()
         return CreateTask(task=task)
 
-# class UpdateTask(graphene.Mutation):
-#     class Arguments:
-#         item = graphene.String()
-#         task_id = graphene.String()
-    
-#     completed = graphene.Boolean()
-#     task = graphene.Field(lambda: Task)
-
-#     def mutate(root, info, item, task_id):
-#         completed = False
-#         task = Task(task_id=task_id, item=item, completed=completed)
-
-#         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
-#         row.item=item
-#         session.commit()
-#         return UpdateTask(task=task)
 
 class UpdateTodo(graphene.Mutation):
     class Arguments:
@@ -58,19 +50,20 @@ class UpdateTodo(graphene.Mutation):
         task_id = graphene.String()
         completed = graphene.Boolean()
         index = graphene.Int()
-    
+
     task = graphene.Field(Task)
 
     def mutate(root, info, item, task_id, completed, index):
         task = Task(task_id=task_id, item=item, completed=completed, index=index)
 
         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
-        row.item=item
-        row.completed=completed
-        row.index=index
-        
+        row.item = item
+        row.completed = completed
+        row.index = index
+
         session.commit()
         return UpdateTodo(task=task)
+
 
 class MoveIndexUp(graphene.Mutation):
     class Arguments:
@@ -82,13 +75,14 @@ class MoveIndexUp(graphene.Mutation):
     item = graphene.String()
     completed = graphene.Boolean()
 
-
     def mutate(root, info, CurrentIndex, prevIndex):
-        currentTodo = session.query(TaskModel).filter(TaskModel.index == CurrentIndex).one()
+        currentTodo = (
+            session.query(TaskModel).filter(TaskModel.index == CurrentIndex).one()
+        )
         prevTodo = session.query(TaskModel).filter(TaskModel.index == prevIndex).one()
-        
-        currentTodo.index=prevIndex
-        prevTodo.index=CurrentIndex
+
+        currentTodo.index = prevIndex
+        prevTodo.index = CurrentIndex
         session.commit()
 
         task_id = currentTodo.task_id
@@ -111,15 +105,16 @@ class UpdateCompleted(graphene.Mutation):
 
         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
         item = row.item
-        row.completed=completed
+        row.completed = completed
         session.commit()
-        task = Task(task_id=task_id,item=item, completed=completed)
+        task = Task(task_id=task_id, item=item, completed=completed)
         return UpdateCompleted(task=task)
+
 
 class DeleteTask(graphene.Mutation):
     class Arguments:
         task_id = graphene.String()
-    
+
     task_id = graphene.String()
     task = graphene.Field(Task)
 
@@ -131,7 +126,6 @@ class DeleteTask(graphene.Mutation):
         return DeleteTask(task=task)
 
 
-
 class MyMutations(graphene.ObjectType):
     create_task = CreateTask.Field()
     delete_task = DeleteTask.Field()
@@ -139,18 +133,16 @@ class MyMutations(graphene.ObjectType):
     update_completed = UpdateCompleted.Field()
     move_index_up = MoveIndexUp.Field()
 
+
 class Query(graphene.ObjectType):
-    # all_lists = SQLAlchemyConnectionField(List.connection)
-    # all_tasks= SQLAlchemyConnectionField(Task)
     tasks = graphene.List(Task)
     task_max_index = graphene.List(Task)
+
     def resolve_tasks(self, args):
         return session.query(TaskModel).all()
 
     def resolve_task_max_index(self, args):
-      # task_max_index = session.execute("select coalesce(max(index),0) from tasks") 
         return session.query(TaskModel).order_by(TaskModel.index.desc()).limit(1)
 
 
 schema = graphene.Schema(query=Query, mutation=MyMutations)
-

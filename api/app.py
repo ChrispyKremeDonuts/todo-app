@@ -10,17 +10,14 @@ CORS(app)
 
 
 app.add_url_rule(
-    '/graphql',
-    view_func=GraphQLView.as_view(
-        'graphql',
-        schema=schema,
-        graphiql=True # for having the GraphiQL interface
-    )
+    "/graphql", view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True)
 )
+
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     session.remove()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run()
