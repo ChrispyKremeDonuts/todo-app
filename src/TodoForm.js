@@ -1,8 +1,8 @@
-import { Button } from "@material-ui/core";
-import React, { useState } from "react";
-import uuid from "uuid";
-import { gql, useMutation, useQuery, useLazyQuery } from '@apollo/client';
-// import { useQuery } from "react-apollo";
+import { Button } from "@material-ui/core"
+import React, { useState } from "react"
+import uuid from "uuid"
+import { gql, useMutation, useQuery, useLazyQuery } from '@apollo/client'
+// import { useQuery } from "react-apollo"
 
 const ADD_TODOS = gql`
 mutation AddTodo($taskId: String! $task: String! $index: Int!) {
@@ -12,7 +12,7 @@ mutation AddTodo($taskId: String! $task: String! $index: Int!) {
     }
   }
 }
-`;
+`
 
 const GET_MAX_INDEX = gql`
 query maxIndex{taskMaxIndex {
@@ -22,7 +22,7 @@ query maxIndex{taskMaxIndex {
   listId
 	}
 }
-`;
+`
 
 
 function TodoForm({ addTodo }) {
@@ -31,13 +31,13 @@ function TodoForm({ addTodo }) {
     task: "",
     completed: false,
     index: ""
-  });
-  const [addTodoToDB] = useMutation(ADD_TODOS);
+  })
+  const [addTodoToDB] = useMutation(ADD_TODOS)
 
-  const [maxIndex, setMaxIndex] = useState(0);
+  const [maxIndex, setMaxIndex] = useState(100)
 
   const [fetchMaxIndex, {data}] = useLazyQuery(GET_MAX_INDEX, { onCompleted: () => {
-    let newMax = 0;
+    let newMax = 100
     data.taskMaxIndex.forEach(row => {
       if(row.index){
         newMax = row.index + 100
@@ -51,21 +51,21 @@ function TodoForm({ addTodo }) {
 
   function handleTaskInputChange(e) {
     //sending reqest  to   server  on  every keystroke. Look for user to press enter
-      setTodo({ ...todo, task: e.target.value });
+      setTodo({ ...todo, task: e.target.value })
       fetchMaxIndex()
   }
 
 
   function handleSubmit(e) {
-    e.preventDefault(); 
+    e.preventDefault() 
 
     let temp_id = uuid.v4()
 
    setMaxIndex(maxIndex + 100)
     if (todo.task.trim()) {
-      addTodo({ ...todo, id: temp_id, index: maxIndex });
-      addTodoToDB({variables: { taskId: temp_id, task: todo.task, index: maxIndex } });
-      setTodo({ ...todo, task: "" });
+      addTodo({ ...todo, id: temp_id, index: maxIndex })
+      addTodoToDB({variables: { taskId: temp_id, task: todo.task, index: maxIndex } })
+      setTodo({ ...todo, task: "" })
     }
 
   }
@@ -82,7 +82,7 @@ function TodoForm({ addTodo }) {
       />
       <Button type="submit">Submit</Button>
     </form>
-  );
+  )
 }
 
-export default TodoForm;
+export default TodoForm

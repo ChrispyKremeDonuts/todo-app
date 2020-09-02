@@ -1,63 +1,61 @@
-import { Checkbox, IconButton, ListItem } from "@material-ui/core";
-import CloseIcon from "@material-ui/icons/Close";
-import SaveIcon from '@material-ui/icons/Save';
-import React, { useState }  from "react";
-import { gql, useMutation } from '@apollo/client';
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import Box from '@material-ui/core/Box';
+import { Checkbox, IconButton, ListItem } from "@material-ui/core"
+import CloseIcon from "@material-ui/icons/Close"
+import SaveIcon from '@material-ui/icons/Save'
+import React, { useState }  from "react"
+import { gql, useMutation } from '@apollo/client'
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward'
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward'
+import Box from '@material-ui/core/Box'
 
-const UPDATE_TODOS = gql`
-mutation UpdateTodo($taskId: String! $task: String!) {
-  updateTask(taskId: $taskId, item: $task){
+
+
+const UPDATE_TODOS = gql `
+mutation updateTask($taskId: String! $task: String! $completed: Boolean! $index: Int!) {
+  updateTodo(taskId: $taskId, item: $task, completed: $completed, index: $index){
     task {
-      taskId, item, completed
+      taskId, item, completed, index
     }
   }
 }
-`;
-
-const UPDATE_COMPLETED = gql `
-mutation Updatecompleted($taskId: String! $completed: Boolean!) {
-  updateCompleted(taskId: $taskId, completed: $completed){
-    task {
-      taskId, item, completed
-    }
-  }
-}
-`;
+`
 
 
 
-function Todo({ todo, toggleComplete, removeTodo, handleSave }) {
-  const [taskValue, setTaskValue] = useState(todo.task);
-  const [isEditable, setIsEditable] = useState(false);
-  const [EditTodoDb] = useMutation(UPDATE_TODOS);
-  const [EditCompleteDb] = useMutation(UPDATE_COMPLETED);
+function Todo({ todo, toggleComplete, removeTodo, handleSave, moveUp, moveDown }) {
+  const [taskValue, setTaskValue] = useState(todo.task)
+  const [taskComplete, setTaskComplete] = useState(todo.completed)
+  const [isEditable, setIsEditable] = useState(false)
+  const [EditTodoDb] = useMutation(UPDATE_TODOS)
 
 
   function handleCheckboxClick() {
-    toggleComplete(todo.id);
-    EditCompleteDb({variables: { taskId: todo.id, completed: !todo.completed } });
+    toggleComplete(todo.id)
+    EditTodoDb({variables: { taskId: todo.id, task: todo.task, completed: !todo.completed, index: todo.index } })
   }
 
   function handleRemoveClick() {
-    removeTodo(todo.id);
+    removeTodo(todo.id)
   }
 
   function handleSaveClick(){
-    let newTodo = {...todo};
-    newTodo.task = taskValue;
-    EditTodoDb({variables: { taskId: todo.id, task: newTodo.task } });
+    let newTodo = {...todo}
+    newTodo.task = taskValue
+    EditTodoDb({variables: { taskId: todo.id, task: newTodo.task, completed: todo.completed, index: todo.index } })
     handleSave(newTodo)
     setIsEditable(false)
 }
 
 function handleUpClick(){
-  console.log("I am clicking up")
+  //let newTodo = {...todo}
+  //console.log(todo)
+ let test = moveUp(todo)
+ // console.log(todo)
+  setTaskComplete(test.completed)
+
 }
+
 function handleDownClick(){
-  console.log("I am clicking Down")
+  moveDown(todo)
 }
 
   return isEditable ? (
@@ -88,7 +86,7 @@ function handleDownClick(){
         <CloseIcon />
       </IconButton>
     </ListItem>
-  );
+  )
 }
 
-export default Todo;
+export default Todo

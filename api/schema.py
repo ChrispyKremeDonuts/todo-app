@@ -35,29 +35,76 @@ class CreateTask(graphene.Mutation):
         session.commit()
         return CreateTask(task=task)
 
-class UpdateTask(graphene.Mutation):
+# class UpdateTask(graphene.Mutation):
+#     class Arguments:
+#         item = graphene.String()
+#         task_id = graphene.String()
+    
+#     completed = graphene.Boolean()
+#     task = graphene.Field(lambda: Task)
+
+#     def mutate(root, info, item, task_id):
+#         completed = False
+#         task = Task(task_id=task_id, item=item, completed=completed)
+
+#         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
+#         row.item=item
+#         session.commit()
+#         return UpdateTask(task=task)
+
+class UpdateTodo(graphene.Mutation):
     class Arguments:
         item = graphene.String()
         task_id = graphene.String()
+        completed = graphene.Boolean()
+        index = graphene.Int()
     
-    completed = graphene.Boolean()
-    task = graphene.Field(lambda: Task)
+    task = graphene.Field(Task)
 
-    def mutate(root, info, item, task_id):
-        completed = False
-        task = Task(task_id=task_id, item=item, completed=completed)
+    def mutate(root, info, item, task_id, completed, index):
+        task = Task(task_id=task_id, item=item, completed=completed, index=index)
 
         row = session.query(TaskModel).filter(TaskModel.task_id == task_id).one()
         row.item=item
+        row.completed=completed
+        row.index=index
+        
         session.commit()
-        return UpdateTask(task=task)
+        return UpdateTodo(task=task)
+
+class MoveIndexUp(graphene.Mutation):
+    class Arguments:
+        CurrentIndex = graphene.Int()
+        prevIndex = graphene.Int()
+
+    task = graphene.Field(Task)
+    task_id = graphene.String()
+    item = graphene.String()
+    completed = graphene.Boolean()
+
+
+    def mutate(root, info, CurrentIndex, prevIndex):
+        currentTodo = session.query(TaskModel).filter(TaskModel.index == CurrentIndex).one()
+        prevTodo = session.query(TaskModel).filter(TaskModel.index == prevIndex).one()
+        
+        currentTodo.index=prevIndex
+        prevTodo.index=CurrentIndex
+        session.commit()
+
+        task_id = currentTodo.task_id
+        item = currentTodo.item
+        completed = currentTodo.completed
+
+        task = Task(task_id=task_id, item=item, completed=completed, index=prevIndex)
+
+        return MoveIndexUp(task=task)
+
 
 class UpdateCompleted(graphene.Mutation):
     class Arguments:
         task_id = graphene.String()
         completed = graphene.Boolean()
 
-    item = graphene.String()
     task = graphene.Field(lambda: Task)
 
     def mutate(root, info, completed, task_id):
@@ -88,8 +135,9 @@ class DeleteTask(graphene.Mutation):
 class MyMutations(graphene.ObjectType):
     create_task = CreateTask.Field()
     delete_task = DeleteTask.Field()
-    update_task = UpdateTask.Field()
+    update_todo = UpdateTodo.Field()
     update_completed = UpdateCompleted.Field()
+    move_index_up = MoveIndexUp.Field()
 
 class Query(graphene.ObjectType):
     # all_lists = SQLAlchemyConnectionField(List.connection)
