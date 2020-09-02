@@ -2,10 +2,11 @@ import { Checkbox, IconButton, ListItem } from "@material-ui/core"
 import CloseIcon from "@material-ui/icons/Close"
 import SaveIcon from '@material-ui/icons/Save'
 import React, { useState }  from "react"
-import { gql, useMutation } from '@apollo/client'
+import { gql, useMutation, useQuery } from '@apollo/client'
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward'
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward'
 import Box from '@material-ui/core/Box'
+
 
 
 
@@ -19,11 +20,18 @@ mutation updateTask($taskId: String! $task: String! $completed: Boolean! $index:
 }
 `
 
+const GET_TODOS = gql`
+query Tasks{
+  tasks {
+    taskId, item, completed, index
+  }
+}`
+
 
 
 function Todo({ todo, toggleComplete, removeTodo, handleSave, moveUp, moveDown }) {
   const [taskValue, setTaskValue] = useState(todo.task)
-  const [taskComplete, setTaskComplete] = useState(todo.completed)
+  const [task, setTask] = useState(todo)
   const [isEditable, setIsEditable] = useState(false)
   const [EditTodoDb] = useMutation(UPDATE_TODOS)
 
@@ -32,6 +40,8 @@ function Todo({ todo, toggleComplete, removeTodo, handleSave, moveUp, moveDown }
     toggleComplete(todo.id)
     EditTodoDb({variables: { taskId: todo.id, task: todo.task, completed: !todo.completed, index: todo.index } })
   }
+
+
 
   function handleRemoveClick() {
     removeTodo(todo.id)
@@ -46,12 +56,8 @@ function Todo({ todo, toggleComplete, removeTodo, handleSave, moveUp, moveDown }
 }
 
 function handleUpClick(){
-  //let newTodo = {...todo}
-  //console.log(todo)
- let test = moveUp(todo)
- // console.log(todo)
-  setTaskComplete(test.completed)
-
+ // setTask(moveUp(todo))
+ moveUp(todo)
 }
 
 function handleDownClick(){
