@@ -65,33 +65,35 @@ class UpdateTodo(graphene.Mutation):
         return UpdateTodo(task=task)
 
 
-class MoveIndexUp(graphene.Mutation):
+class SwapIndex(graphene.Mutation):
     class Arguments:
-        CurrentIndex = graphene.Int()
-        prevIndex = graphene.Int()
+        currentIndex = graphene.Int()
+        targetIndex = graphene.Int()
 
     task = graphene.Field(Task)
     task_id = graphene.String()
     item = graphene.String()
     completed = graphene.Boolean()
 
-    def mutate(root, info, CurrentIndex, prevIndex):
+    def mutate(root, info, currentIndex, targetIndex):
         currentTodo = (
-            session.query(TaskModel).filter(TaskModel.index == CurrentIndex).one()
+            session.query(TaskModel).filter(TaskModel.index == currentIndex).one()
         )
-        prevTodo = session.query(TaskModel).filter(TaskModel.index == prevIndex).one()
+        targetTodo = (
+            session.query(TaskModel).filter(TaskModel.index == targetIndex).one()
+        )
 
-        currentTodo.index = prevIndex
-        prevTodo.index = CurrentIndex
+        currentTodo.index = targetIndex
+        targetTodo.index = currentIndex
         session.commit()
 
         task_id = currentTodo.task_id
         item = currentTodo.item
         completed = currentTodo.completed
 
-        task = Task(task_id=task_id, item=item, completed=completed, index=prevIndex)
+        task = Task(task_id=task_id, item=item, completed=completed, index=targetIndex)
 
-        return MoveIndexUp(task=task)
+        return SwapIndex(task=task)
 
 
 class UpdateCompleted(graphene.Mutation):
@@ -131,7 +133,7 @@ class MyMutations(graphene.ObjectType):
     delete_task = DeleteTask.Field()
     update_todo = UpdateTodo.Field()
     update_completed = UpdateCompleted.Field()
-    move_index_up = MoveIndexUp.Field()
+    swap_index = SwapIndex.Field()
 
 
 class Query(graphene.ObjectType):

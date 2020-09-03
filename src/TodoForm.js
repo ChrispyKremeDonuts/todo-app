@@ -67,6 +67,8 @@ function TodoForm({ addTodo }) {
 				variables: { taskId: temp_id, task: todo.task, index: maxIndex },
 			});
 			setTodo({ ...todo, task: "" });
+		} else {
+			window.alert("You forgot to write something");
 		}
 	}
 

@@ -29,8 +29,8 @@ const DELETE_TODOS = gql`
 `;
 
 const SWAP_INDEX = gql`
-	mutation indexUp($CurrentIndex: Int!, $prevIndex: Int!) {
-		moveIndexUp(CurrentIndex: $CurrentIndex, prevIndex: $prevIndex) {
+	mutation swap($currentIndex: Int!, $targetIndex: Int!) {
+		swapIndex(currentIndex: $currentIndex, targetIndex: $targetIndex) {
 			task {
 				item
 				completed
@@ -109,8 +109,8 @@ function App() {
 
 				swapIndex({
 					variables: {
-						CurrentIndex: todo.index,
-						prevIndex: todos[prevIndex].index,
+						currentIndex: todo.index,
+						targetIndex: todos[prevIndex].index,
 					},
 				});
 				setTodos(
@@ -148,8 +148,8 @@ function App() {
 
 				swapIndex({
 					variables: {
-						CurrentIndex: todos[i].index,
-						prevIndex: todos[nextIndex].index,
+						currentIndex: todos[i].index,
+						targetIndex: todos[nextIndex].index,
 					},
 				});
 

@@ -9,10 +9,9 @@ function TodoList({
 	handleSave,
 	moveUp,
 	moveDown,
-	Complete,
 }) {
 	return (
-		<List style={{ overflow: "scroll" }}>
+		<List style={{ overflow: "scroll", left: "40px" }}>
 			{todos
 				.sort((a, b) => (a.index > b.index ? 1 : -1))
 				.map((todo) => (

@@ -3,6 +3,7 @@ import CloseIcon from "@material-ui/icons/Close";
 import SaveIcon from "@material-ui/icons/Save";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import Typography from "@material-ui/core/Typography";
 import React, { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
 import Box from "@material-ui/core/Box";
@@ -40,12 +41,13 @@ function Todo({
 }) {
 	const todoStyle = {
 		textDecoration: todo.completed ? "line-through" : null,
-		minWidth: "100px",
+		minWidth: "150px",
+		maxWidth: "150px",
 		minHeight: "10px",
-		maxHeight: "50px",
-		maxWidth: "100px",
+		maxHeight: "60px",
 		overflowX: "hidden",
 	};
+
 	const [taskValue, setTaskValue] = useState(todo.task);
 	const [isEditable, setIsEditable] = useState(false);
 	const [EditTodoDb] = useMutation(UPDATE_TODOS);
@@ -80,6 +82,8 @@ function Todo({
 			});
 			handleSave(newTodo);
 			setIsEditable(false);
+		} else {
+			window.alert("You forgot to write something");
 		}
 	}
 
@@ -94,13 +98,15 @@ function Todo({
 	return isEditable ? (
 		<ListItem style={{ display: "flex" }}>
 			<Checkbox checked={todo.completed} onClick={handleCheckboxClick} />
-			<input
-				style={todoStyle}
-				value={taskValue}
-				onChange={(e) => {
-					setTaskValue(e.currentTarget.value);
-				}}
-			/>
+			<Typography>
+				<input
+					style={todoStyle}
+					value={taskValue}
+					onChange={(e) => {
+						setTaskValue(e.currentTarget.value);
+					}}
+				/>
+			</Typography>
 			<IconButton onClick={handleSaveClick}>
 				<SaveIcon />
 			</IconButton>
